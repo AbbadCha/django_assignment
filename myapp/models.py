@@ -3,14 +3,6 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    bio = models.TextField(blank=True)
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
-    
-    def __str__(self):
-        return f"{self.user.username}'s Profile"
-
 class Item(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
@@ -31,14 +23,29 @@ class ChatMessage(models.Model):
     def __str__(self):
         return f"Message by {self.user.username} at {self.timestamp}"
 
+class UserProfile(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='userprofile'
+    )
+    bio = models.TextField(blank=True)
+    avatar = models.ImageField(
+        upload_to='avatars/',
+        blank=True,
+        null=True  # Keep this to allow NULL in database
+    )
+
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+
 class Activity(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     action = models.CharField(max_length=255)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)  # This is the current field name
     
     class Meta:
-        verbose_name_plural = "Activities"
-        ordering = ['-timestamp']
+        ordering = ['-created_at']
     
     def __str__(self):
-        return f"{self.user.username} - {self.action}"  # Fixed missing closing quote
+        return f"{self.user.username} - {self.action}"

@@ -106,29 +106,40 @@ def activity_feed(request):
     return render(request, 'myapp/activity_feed.html', {'activities': activities})
 
 @login_required
-def edit_profile(request):
-    try:
-        profile = request.user.userprofile
-    except UserProfile.DoesNotExist:
-        profile = UserProfile.objects.create(user=request.user)
+def profile_view(request):
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    activities = Activity.objects.filter(user=request.user).order_by('-created_at')[:10]
+      
+    return render(request, 'myapp/profile.html', {
+        'profile': profile,
+        'activities': activities
+    })
 
+@login_required
+def edit_profile(request):
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
     if request.method == 'POST':
         user_form = UserUpdateForm(request.POST, instance=request.user)
         profile_form = ProfileUpdateForm(
-            request.POST, 
-            request.FILES, 
+            request.POST,
+            request.FILES,
             instance=profile
         )
         
         if user_form.is_valid() and profile_form.is_valid():
             user_form.save()
             profile_form.save()
+            
+            # Create activity log
             Activity.objects.create(
                 user=request.user,
-                action="Updated profile"
+                action='PROFILE_UPDATE',
+                details='Updated profile information'
             )
-            messages.success(request, 'Your profile has been updated!')
-            return redirect('item_list')
+            
+            messages.success(request, 'Your profile has been updated successfully!')
+            return redirect('profile')
     else:
         user_form = UserUpdateForm(instance=request.user)
         profile_form = ProfileUpdateForm(instance=profile)

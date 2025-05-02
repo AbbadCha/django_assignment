@@ -1,0 +1,54 @@
+{% extends "myapp/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" class="rounded-circle mb-3" width="200" height="200">
+                    {% else %}
+                        <img src="{% static 'images/default-avatar.png' %}" class="rounded-circle mb-3" width="200" height="200">
+                    {% endif %}
+                    <h3>{{ user.username }}</h3>
+                    <p class="text-muted">Member since {{ user.date_joined|date:"F Y" }}</p>
+                    <a href="{% url 'edit_profile' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">About</h5>
+                    <p class="card-text">
+                        {{ profile.bio|default:"No bio yet. Tell us about yourself!" }}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Activity</h5>
+                    {% if activities %}
+                        <ul class="list-group list-group-flush">
+                            {% for activity in activities %}
+                            <li class="list-group-item">
+                                <small class="text-muted">{{ activity.created_at|timesince }} ago</small>
+                                <div>{{ activity.get_action_display }} - {{ activity.details }}</div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No recent activity</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
