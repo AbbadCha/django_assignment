@@ -4,9 +4,15 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import Item, Activity, UserProfile
-from .forms import ItemForm, UserUpdateForm, ProfileUpdateForm
-
+from .models import Item, UserProfile, ChatRoom, ChatMessage, Activity
+from .forms import (
+    ItemForm,
+    UserUpdateForm,
+    ProfileUpdateForm,
+    ChatRoomForm,
+    ChatMessageForm,
+    UserCreationForm
+)
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -147,4 +153,44 @@ def edit_profile(request):
     return render(request, 'myapp/edit_profile.html', {
         'user_form': user_form,
         'profile_form': profile_form
+    })
+
+@login_required
+def chat_room_list(request):
+    rooms = request.user.chat_rooms.all()
+    return render(request, 'myapp/chat/room_list.html', {'rooms': rooms})
+
+@login_required
+def chat_room_create(request):
+    if request.method == 'POST':
+        form = ChatRoomForm(request.POST)
+        if form.is_valid():
+            room = form.save()
+            room.participants.add(request.user)  # Add creator to participants
+            messages.success(request, 'Chat room created successfully!')
+            return redirect('chat_room_list')
+    else:
+        form = ChatRoomForm()
+    return render(request, 'myapp/chat/room_form.html', {'form': form})
+
+@login_required
+def chat_room_detail(request, room_id):
+    room = get_object_or_404(ChatRoom, id=room_id, participants=request.user)
+    messages = room.messages.all().order_by('timestamp')[:100]
+    
+    if request.method == 'POST':
+        form = ChatMessageForm(request.POST)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.room = room
+            message.sender = request.user
+            message.save()
+            return redirect('chat_room_detail', room_id=room.id)
+    else:
+        form = ChatMessageForm()
+    
+    return render(request, 'myapp/chat/room_detail.html', {
+        'room': room,
+        'messages': messages,
+        'form': form
     })

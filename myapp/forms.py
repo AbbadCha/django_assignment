@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
-from .models import Item, ChatMessage, UserProfile
+from .models import Item, UserProfile, ChatRoom, ChatMessage, Activity
 
 # Get the User model
 User = get_user_model()
@@ -18,16 +18,27 @@ class ItemForm(forms.ModelForm):
             }),
         }
 
+class ChatRoomForm(forms.ModelForm):
+    class Meta:
+        model = ChatRoom
+        fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter room name...'
+            })
+        }
+
 class ChatMessageForm(forms.ModelForm):
     class Meta:
         model = ChatMessage
         fields = ['message']
         widgets = {
             'message': forms.Textarea(attrs={
-                'rows': 3,
                 'class': 'form-control',
-                'placeholder': 'Type your message here'
-            }),
+                'rows': 3,
+                'placeholder': 'Type your message here...'
+            })
         }
 
 class UserUpdateForm(forms.ModelForm):

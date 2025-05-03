@@ -13,4 +13,5 @@ urlpatterns = [
     path('items/<int:pk>/delete/', views.item_delete, name='item_delete'),
     path('profile/', views.profile_view, name='profile'),
     path('profile/edit/', views.edit_profile, name='edit_profile'),
+    path('chat/', views.chat_room_list, name='chat_room_list'),
 ]
